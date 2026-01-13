@@ -4,8 +4,6 @@
 
 Generate 850,000+ unique, hyper-detailed prompts with a single click.
 
----
-
 ## ✨ Features
 
 - **850,000+ Unique Combinations** - Endless prompt variations
