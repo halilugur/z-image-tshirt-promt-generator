@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Image Prompt Generator Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-animate {
+            background-size: 200% 200%;
+            animation: gradient 8s ease infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
+
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
+            Z-Image Prompt Generator Pro
+        </h1>
+        <p class="text-gray-400 text-lg">Ultra-Detailed, T-Shirt Optimized, Narrative Prompts</p>
+        <p class="text-gray-500 text-sm mt-2">Advanced AI prompt engine with 10,000+ unique combinations</p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-slate-700 shadow-2xl">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-cyan-400 font-semibold mb-2">Quantity</label>
+                <input type="number" id="count" value="100" min="1" max="10000"
+                    class="w-full bg-slate-900 border border-slate-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 transition">
+            </div>
+            
+            <div>
+                <label class="block text-cyan-400 font-semibold mb-2">Style Focus</label>
+                <select id="styleFilter" class="w-full bg-slate-900 border border-slate-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 transition">
+                    <option value="all">All Styles</option>
+                    <option value="animal">Animals</option>
+                    <option value="mech">Mechanical</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="horror">Horror</option>
+                    <option value="nature">Nature</option>
+                </select>
+            </div>
+
+            <button onclick="generate()" 
+                class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105 shadow-lg">
+                ⚡ Generate Prompts
+            </button>
+
+            <button onclick="download()" 
+                class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105 shadow-lg">
+                💾 Download TXT
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4 mt-6">
+            <div class="bg-slate-900/50 rounded-lg p-4 text-center border border-slate-700">
+                <div class="text-2xl font-bold text-cyan-400" id="generatedCount">0</div>
+                <div class="text-gray-400 text-sm">Generated</div>
+            </div>
+            <div class="bg-slate-900/50 rounded-lg p-4 text-center border border-slate-700">
+                <div class="text-2xl font-bold text-purple-400" id="avgLength">0</div>
+                <div class="text-gray-400 text-sm">Avg Characters</div>
+            </div>
+            <div class="bg-slate-900/50 rounded-lg p-4 text-center border border-slate-700">
+                <div class="text-2xl font-bold text-pink-400" id="varieties">850+</div>
+                <div class="text-gray-400 text-sm">Combinations</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output Display -->
+    <div class="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
+        <div class="bg-slate-900/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-cyan-400">Generated Prompts</h2>
+            <button onclick="copyAll()" class="text-sm bg-slate-700 hover:bg-slate-600 text-gray-300 px-4 py-2 rounded-lg transition">
+                📋 Copy All
+            </button>
+        </div>
+        <div id="output" class="p-6 h-[600px] overflow-y-auto font-mono text-sm text-gray-300 leading-relaxed">
+            <div class="text-center text-gray-500 py-20">
+                <div class="text-6xl mb-4">🎨</div>
+                <p class="text-lg">Click "Generate Prompts" to create detailed AI prompts</p>
+                <p class="text-sm mt-2">Each prompt is uniquely crafted with multiple variations</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const data = {
+    subjects: [
+        { name: "Siberian Tiger", feature: "thick striped ruff", skin: "dense orange fur with black stripes", nose: "textured pink snout", type: "animal" },
+        { name: "Cybernetic Samurai Ape", feature: "bolted titanium crest", skin: "synthetic leathery skin with circuit patterns", nose: "ventilation port nose", type: "mech" },
+        { name: "Ancient Forest Stag", feature: "majestic velvet antlers", skin: "moss-covered brown hide", nose: "damp black nose", type: "nature" },
+        { name: "Cthulhu-inspired Entity", feature: "writhing facial tentacles", skin: "slimy iridescent scales", nose: "multiple nasal slits", type: "horror" },
+        { name: "Steampunk Golden Eagle", feature: "brass clockwork crown", skin: "polished brass feathers", nose: "mechanical hooked beak", type: "mech" },
+        { name: "Royal Snow Leopard", feature: "heavy spotted mane", skin: "ultra-soft spotted winter coat", nose: "pale pink nose", type: "animal" },
+        { name: "Dragon Warrior Hybrid", feature: "scaled horned crest", skin: "armored dragon scales", nose: "smoking nostrils", type: "fantasy" },
+        { name: "Bioluminescent Deep Sea Creature", feature: "glowing antenna", skin: "translucent gelatinous membrane", nose: "bioluminescent sensors", type: "nature" },
+        { name: "Mystical Phoenix", feature: "flame-tipped crest", skin: "iridescent feathers with ember patterns", nose: "golden curved beak", type: "fantasy" },
+        { name: "Neon Cyberpunk Wolf", feature: "LED-lit mohawk", skin: "synthetic fiber coat with circuitry", nose: "chrome sensory node", type: "mech" },
+        { name: "Ancient Stone Golem", feature: "crystalline crown formation", skin: "weathered granite surface with moss", nose: "carved stone cavity", type: "fantasy" },
+        { name: "Cosmic Owl", feature: "galaxy-pattern plumage", skin: "nebula-colored feathers", nose: "star-speckled beak", type: "fantasy" },
+        { name: "Zombie Apocalypse Bear", feature: "torn flesh crown", skin: "decaying fur with exposed muscle", nose: "rotting snout", type: "horror" },
+        { name: "Arctic Fox Spirit", feature: "ethereal wispy mane", skin: "pristine white ghostly fur", nose: "translucent nose", type: "fantasy" },
+        { name: "Volcanic Salamander", feature: "lava-dripping crest", skin: "obsidian scaled hide with magma cracks", nose: "smoking heat vents", type: "nature" }
+    ],
+    
+    perspectives: [
+        "eye-level frontal portrait",
+        "dramatic three-quarter view",
+        "intense side profile",
+        "slightly upward heroic angle",
+        "commanding downward perspective",
+        "intimate close-up cropping"
+    ],
+
+    expressions: [
+        "powerful roar with bared teeth",
+        "calm focused gaze with mouth closed",
+        "aggressive snarl showing canines",
+        "majestic composed expression",
+        "fierce battle cry",
+        "mysterious slight smirk",
+        "contemplative wise look",
+        "primal hunting stare"
+    ],
+
+    lighting: [
+        "dramatic rim lighting from behind creating a glowing halo effect",
+        "soft cinematic golden hour glow with warm amber tones",
+        "harsh volumetric neon lighting in electric blues and magentas",
+        "ethereal moonlight filtering through with cool silver highlights",
+        "studio-quality high-key lighting with perfect exposure",
+        "intense bioluminescent pulses creating organic light patterns",
+        "chiaroscuro dark-to-light gradient with deep shadows",
+        "backlit silhouette with explosive brightness behind",
+        "dual-tone lighting splitting the face between warm and cool",
+        "underwater caustic light patterns dancing across features",
+        "harsh overhead spotlight creating dramatic face shadows",
+        "soft diffused overcast natural lighting"
+    ],
+
+    textures: [
+        "individual strands of hair visible in microscopic detail",
+        "micro-detailed pores and battle scars",
+        "reflective metallic sheen with mirror-like qualities",
+        "dripping wet texture with water beads catching light",
+        "sharp crisp edges with fine grit and roughness",
+        "smooth airbrushed gradients transitioning seamlessly",
+        "rough weathered surface with chips and cracks",
+        "silky flowing texture with natural movement",
+        "crystalline faceted surfaces refracting light",
+        "organic bio-texture with visible veins and patterns"
+    ],
+
+    eyeColors: [
+        "piercing sapphire blue with star-like reflections",
+        "molten lava orange with internal glow",
+        "electric violet crackling with energy",
+        "emerald crystal green with depth",
+        "blind milky white with mystical quality",
+        "golden amber with feline intensity",
+        "blood red with demonic intensity",
+        "ice blue with frozen clarity",
+        "heterochromatic blue and amber",
+        "glowing cyan bioluminescence",
+        "deep obsidian black with no visible pupil",
+        "silver chrome reflective"
+    ],
+
+    colorPalettes: [
+        { primary: "vibrant electric orange", secondary: "deep midnight indigo", accent: "glowing cyan highlights" },
+        { primary: "antique weathered gold", secondary: "burnt umber brown", accent: "vermilion red accents" },
+        { primary: "iridescent pearl white", secondary: "soft silver grey", accent: "sky blue touches" },
+        { primary: "toxic neon green", secondary: "matte carbon black", accent: "acid yellow streaks" },
+        { primary: "royal deep purple", secondary: "rose gold", accent: "crimson red details" },
+        { primary: "arctic ice blue", secondary: "steel grey", accent: "white frost highlights" },
+        { primary: "volcanic ash black", secondary: "magma orange", accent: "ember red glow" },
+        { primary: "forest emerald green", secondary: "earth brown", accent: "golden sun rays" },
+        { primary: "cosmic deep navy", secondary: "stardust silver", accent: "nebula pink wisps" },
+        { primary: "desert sand tan", secondary: "terracotta orange", accent: "turquoise oasis blue" }
+    ],
+
+    backgroundDetails: [
+        "explosive white splashes of acrylic paint and water droplets",
+        "shattering shards of crystalline glass refracting rainbow light",
+        "swirling vortex of autumn leaves in reds and golds",
+        "floating holographic particles and glowing data streams",
+        "thick billowing smoke clouds and dancing fire embers",
+        "ink-wash splatters in a chaotic abstract pattern",
+        "geometric sacred geometry symbols glowing softly",
+        "electrical lightning bolts crackling through space",
+        "dissolving digital pixels and glitch effects",
+        "organic vine tendrils and blooming flowers",
+        "cosmic nebula clouds with star particles",
+        "tribal pattern mandala radiating outward",
+        "mechanical gears and clockwork mechanisms",
+        "dripping paint running down in vertical streams",
+        "shattered mirror fragments reflecting fractured reality"
+    ],
+
+    additionalDetails: [
+        "whiskers are individually rendered with fine precision",
+        "fur direction flows naturally following muscle contours",
+        "battle scars and healed wounds tell stories of past conflicts",
+        "jewelry adorns the subject with intricate metalwork",
+        "breath vapor is visible in cold atmospheric conditions",
+        "muscles are defined and tensed showing raw power",
+        "ancient runes are carved or tattooed into skin",
+        "cybernetic implants are seamlessly integrated",
+        "weathering and aging effects show character history",
+        "liquid elements like blood or water add drama"
+    ],
+
+    mouthDetails: [
+        "mouth wide open revealing rows of sharp teeth with visible saliva strands",
+        "lips slightly parted showing just the tips of fangs",
+        "snarling with gums exposed and teeth bared aggressively",
+        "closed mouth with determined expression and tight jaw",
+        "tongue visible between teeth adding organic detail",
+        "mechanical jaw with hydraulic pistons and metal teeth",
+        "dripping venom or saliva forming viscous droplets"
+    ],
+
+    noseDetails: [
+        "textured with visible pores and natural shine",
+        "scarred and battle-worn showing history",
+        "chrome metallic with sensory ports",
+        "organic and wet with moisture droplets",
+        "crystalline translucent material",
+        "covered in fine fur or scales",
+        "augmented with technological enhancements"
+    ]
+};
+
+let currentPrompts = [];
+
+function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generate() {
+    const count = parseInt(document.getElementById('count').value);
+    const styleFilter = document.getElementById('styleFilter').value;
+    currentPrompts = [];
+    
+    let subjects = data.subjects;
+    if (styleFilter !== 'all') {
+        subjects = data.subjects.filter(s => s.type === styleFilter);
+        if (subjects.length === 0) subjects = data.subjects;
+    }
+
+    for (let i = 0; i < count; i++) {
+        const s = pick(subjects);
+        const perspective = pick(data.perspectives);
+        const expression = pick(data.expressions);
+        const l = pick(data.lighting);
+        const t = pick(data.textures);
+        const c = pick(data.colorPalettes);
+        const bg = pick(data.backgroundDetails);
+        const eyeColor = pick(data.eyeColors);
+        const mouthDetail = pick(data.mouthDetails);
+        const noseDetail = pick(data.noseDetails);
+        const additional = pick(data.additionalDetails);
+        const headDirection = pick(["facing left", "facing right", "facing forward", "tilted slightly upward", "angled downward"]);
+
+        const prompt = `T-shirt design, A ${perspective} hyper-realistic painting of a ${s.name}'s face dominates the center of the composition. ` +
+        `The ${s.name}'s head is ${headDirection}, captured in a ${expression}. ` +
+        `Its eyes are ${eyeColor}. The ${s.skin} displays ${t}, rendered in ${c.primary} tones with ${c.secondary} undertones and ${c.accent}. ` +
+        `Its distinctive ${s.feature} features ${c.secondary} coloring. ${additional}. ` +
+        `The subject's ${mouthDetail}. Its ${s.nose} is ${noseDetail}. ` +
+        `${l} illuminates the scene, creating dimensional depth and dramatic mood. ` +
+        `The background explodes with ${bg}, creating dynamic visual energy around the subject. ` +
+        `The entire composition is set against a clean white backdrop with high-contrast professional vector aesthetic, optimized for t-shirt printing, 4K ultra-detailed, photorealistic quality, sharp focus, studio lighting, tshirt.`;
+        
+        currentPrompts.push(prompt);
+    }
+
+    displayPrompts();
+    updateStats();
+}
+
+function displayPrompts() {
+    const output = document.getElementById('output');
+    output.innerHTML = currentPrompts.map((p, i) => 
+        `<div class="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-cyan-400 font-bold">Prompt #${i + 1}</span>
+                <button onclick="copyPrompt(${i})" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded transition">Copy</button>
+            </div>
+            <div class="text-gray-300 leading-relaxed">${p}</div>
+        </div>`
+    ).join('');
+}
+
+function updateStats() {
+    document.getElementById('generatedCount').textContent = currentPrompts.length;
+    const avgLen = Math.round(currentPrompts.reduce((sum, p) => sum + p.length, 0) / currentPrompts.length);
+    document.getElementById('avgLength').textContent = avgLen;
+    
+    const totalCombinations = data.subjects.length * data.perspectives.length * data.expressions.length * 
+        data.lighting.length * data.colorPalettes.length * data.backgroundDetails.length;
+    document.getElementById('varieties').textContent = totalCombinations.toLocaleString() + '+';
+}
+
+function download() {
+    if (currentPrompts.length === 0) {
+        alert('Generate prompts first!');
+        return;
+    }
+    const blob = new Blob([currentPrompts.join('\n\n---\n\n')], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Z-Image-Prompts-${Date.now()}.txt`;
+    a.click();
+}
+
+function copyPrompt(index) {
+    navigator.clipboard.writeText(currentPrompts[index]);
+    event.target.textContent = '✓ Copied!';
+    setTimeout(() => event.target.textContent = 'Copy', 2000);
+}
+
+function copyAll() {
+    if (currentPrompts.length === 0) return;
+    navigator.clipboard.writeText(currentPrompts.join('\n\n---\n\n'));
+    event.target.textContent = '✓ All Copied!';
+    setTimeout(() => event.target.textContent = '📋 Copy All', 2000);
+}
+</script>
+
+</body>
+</html>
